@@ -20,27 +20,25 @@ class TableHelpers
         $headers = $html5->saveHTML($rows->shift());
         $headers = $this->removeWhitespace($headers);
 
-        $headerCount = strlen('<table>' . $headers . '</table>');
-
-        $chunks = [];
-
         $startHTML = '<table>' . $headers;
         $endHTML = '</table>';
+        $headerCount = strlen($startHTML . $endHTML);
 
+        $chunks = [];
         $chunkCount = 0;
         $chunk = $startHTML;
 
         foreach ($rows as $row) {
-            $tr = $html5->saveHTML($row);
-            $tr = $this->removeWhitespace($tr);
+            $row = $html5->saveHTML($row);
+            $row = $this->removeWhitespace($row);
 
-            $currentCount = strlen($tr);
+            $currentCount = strlen($row);
 
-            $totalCount = $chunkCount + $currentCount + $headerCount;
+            $totalCount = $headerCount + $chunkCount + $currentCount;
 
             if ($totalCount <= 1000) {
                 $chunkCount += $currentCount;
-                $chunk .= $tr;
+                $chunk .= $row;
             } else {
                 // remove any chunks that only contain one row but still exceed the 1000 character limit
                 if ($chunkCount + $headerCount <= 1000) {
@@ -48,10 +46,8 @@ class TableHelpers
                 }
 
                 $chunkCount = $currentCount;
-                $chunk = $startHTML . $tr;
+                $chunk = $startHTML . $row;
             }
-
-
         }
 
         return $chunks;
@@ -63,7 +59,7 @@ class TableHelpers
      */
     public function removeWhitespace(string $html): string
     {
-        $html = preg_replace("/\n/", "", $html);
+        $html = preg_replace("/\n/", '', $html);
         $html = preg_replace("/[\t ]+\</", '<', $html);
         $html = preg_replace("/\>[\t ]+\</", '><', $html);
         $html = preg_replace("/\>[\t ]+$/", '>', $html);
